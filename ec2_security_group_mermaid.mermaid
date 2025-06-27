@@ -1,0 +1,45 @@
+graph TB
+    Internet[🌐 Internet<br/>인터넷]
+    IGW[🚪 Internet Gateway<br/>인터넷 게이트웨이]
+    
+    subgraph VPC ["🏢 VPC (Virtual Private Cloud)"]
+        subgraph Subnet ["📡 Subnet"]
+            EC2_1[💻 EC2 Instance<br/>i-1234567890abcdef0<br/>Private: 10.0.1.100<br/>Public: 54.123.45.67]
+            EC2_2[💻 Other EC2<br/>같은 보안그룹]
+            
+            subgraph SG ["🛡️ 기본 보안그룹<br/>sg-0123456789abcdef0"]
+                Inbound["📥 Inbound Rules<br/>✅ All Traffic<br/>Source: Same SG<br/>(자기 자신만)"]
+                Outbound["📤 Outbound Rules<br/>✅ All Traffic<br/>Destination: 0.0.0.0/0<br/>(모든 곳)"]
+            end
+        end
+    end
+    
+    ExternalUser[👤 외부 사용자<br/>SSH/HTTP 시도]
+    
+    %% 연결 관계
+    Internet --> IGW
+    IGW --> EC2_1
+    EC2_1 -.-> SG
+    SG --> Inbound
+    SG --> Outbound
+    
+    %% 허용된 통신
+    EC2_1 <--> EC2_2
+    EC2_1 --> Internet
+    
+    %% 차단된 통신
+    ExternalUser -.->|❌ 차단됨| EC2_1
+    
+    %% 스타일링
+    classDef ec2Class fill:#ffecb3,stroke:#ff8f00,stroke-width:2px
+    classDef sgClass fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
+    classDef ruleClass fill:#e8f5e8,stroke:#2e7d32,stroke-width:1px
+    classDef blockedClass fill:#ffebee,stroke:#d32f2f,stroke-width:2px,stroke-dasharray: 5 5
+    classDef allowedClass fill:#e8f5e8,stroke:#4caf50,stroke-width:2px
+    classDef internetClass fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
+    
+    class EC2_1,EC2_2 ec2Class
+    class SG sgClass
+    class Inbound,Outbound ruleClass
+    class ExternalUser blockedClass
+    class Internet,IGW internetClass
